@@ -1,0 +1,38 @@
+version: 0.1
+
+environment_variables:
+  plaintext:
+    DJANGO_SETTINGS_MODULE: config.settings.test
+    SECRET_KEY: nosecret
+    DATABASE_DEFAULT_URL: sqlite:///db1.sqlite3
+    DATABASE_STREAMDATA_URL: sqlite:///db2.sqlite3
+    STREAM_INCOMING_PRIVATE_KEY: changeme
+    STREAM_INCOMING_PUBLIC_KEY: changeme
+    GOOGLE_API_KEY: changeme
+    OPBEAT_ENABLED: False
+
+phases:
+  install:
+    commands:
+      - apt-get update -y
+      - apt-get install -y maven curl wget
+      - apt-get purge nodejs npm
+      - curl -sL https://deb.nodesource.com/setup_5.x | sudo -E bash -
+      - apt-get install -y nodejs
+      - node --version
+  pre_build:
+    commands:
+      - pip install -r server/requirements/development.txt
+      - npm install -g gulp bower
+      - cd webapp && bower install --allow-root && cd ..
+      - cd webapp && npm install & cd ..
+      - cd webapp && gulp && cd ..
+      - cd server && python manage.py collectstatic --noinput && cd ..
+  build:
+    commands:
+      - cd server && coverage run -m py.test > test.out && cd ..
+      - cd server && coverage report --include=apps/* > coverage.out && cd ..
+      - cd server && coverage html --include=apps/* && cd ..
+  post_build:
+    commands:
+      - echo Build completed on `date`

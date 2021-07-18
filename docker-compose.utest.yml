@@ -1,0 +1,18 @@
+version: '2'
+services:
+
+  web:
+    build:
+      context: ./server/
+    volumes:
+      - ./logs:/var/app/logs
+      - ./server:/var/app
+      - ./staticfiles:/www/static
+    ports:
+      - "5000:8080"
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.development
+      - DJANGO_ENV_FILE=.local.env
+      - DJANGO_SERVER_MODE=Test
+      - DJANGO_SECRET_KEY=test-dummy-key1
+    command: sh runtest.sh
